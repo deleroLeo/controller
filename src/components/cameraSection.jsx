@@ -1,7 +1,17 @@
 "use client"
 
 import React from 'react'
+import { useCallback, useEffect, useState } from "react";
+
+
 const VidPlayer = ({url}) => {
+  useEffect(() => {
+      const webrtc = new RTCPeerConnection({
+      iceServers: [{
+        urls: ['stun:stun.l.google.com:19302']
+      }],
+      sdpSemantics: 'unified-plan'
+    })}, []);
     const webrtc = new RTCPeerConnection({
       iceServers: [{
         urls: ['stun:stun.l.google.com:19302']
