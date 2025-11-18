@@ -12,12 +12,6 @@ const VidPlayer = ({url}) => {
       }],
       sdpSemantics: 'unified-plan'
     })}, []);
-    const webrtc = new RTCPeerConnection({
-      iceServers: [{
-        urls: ['stun:stun.l.google.com:19302']
-      }],
-      sdpSemantics: 'unified-plan'
-    })
     webrtc.ontrack = function (event) {
       console.log(event.streams.length + ' track is delivered')
       return(
