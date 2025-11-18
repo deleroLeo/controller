@@ -10,9 +10,9 @@ const VidPlayer = ({url}) => {
       iceServers: [{
         urls: ['stun:stun.l.google.com:19302']
       }],
-      sdpSemantics: 'unified-plan'
-    })}, []);
-    webrtc.ontrack = function (event) {
+      sdpSemantics: 'unified-plan'})
+
+      webrtc.ontrack = function (event) {
       console.log(event.streams.length + ' track is delivered')
       return(
         <video  autoplay controls srcObject = {event.streams[0]} style="width: 100%; height: auto;"/>
@@ -51,6 +51,9 @@ const VidPlayer = ({url}) => {
       VidPlayer(url)
     }
     webrtcSendChannel.onmessage = event => console.log(event.data)
+
+   }, []);
+    
   }
 
 
