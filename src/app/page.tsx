@@ -9,6 +9,9 @@ import VidSection from '../components/cameraSection.jsx'
 import { useCallback, useEffect, useState } from "react";
 import GridLayout, { Layout } from "react-grid-layout";
 
+import { v4 as uuidv4 } from 'uuid';
+let uuid = uuidv4(); 
+
 import "react-grid-layout/css/styles.css";
 import "./ReportsGridResizeHandle.css";
 import {
@@ -199,7 +202,7 @@ const INITIAL_LAYOUT: WidgetOnLayout[] = [
     setWidgetsOnLayout((prev) => [
       ...prev,
       {
-        position: { i: crypto.randomUUID(), x: i.x, y: i.y, w: 1, h: 1 },
+        position: { i: uuid, x: i.x, y: i.y, w: 1, h: 1 },
         widget: draggedWidget,
       },
     ]);
