@@ -1,0 +1,36 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.react-grid-item > .react-resizable-handle.react-resizable-handle-w {
+  top: 0 !important;
+  bottom: 0 !important;
+  height: 100%;
+  background: transparent;
+  transform: rotate(180deg) !important;
+  margin-top: 0 !important;
+}
+
+.react-grid-item > .react-resizable-handle.react-resizable-handle-s {
+  bottom: 0 !important;
+  width: 100%;
+  left: 0;
+  margin: 0;
+  background: transparent;
+  transform: rotate(180deg) !important;
+  margin-top: 0 !important;
+}
+
+.react-grid-item > .react-resizable-handle.react-resizable-handle-e {
+  top: 0 !important;
+  height: 100%;
+  right: 0 !important;
+  margin: 0;
+  background: transparent;
+  transform: rotate(180deg) !important;
+  margin-top: 0 !important;
+}
+
+.react-resizable-handle::after {
+  display: none;
+}

@@ -1,103 +1,304 @@
-import Image from "next/image";
+"use client"
 
-export default function Home() {
+import React from 'react'
+import CheckboxList from '../components/checkbox.jsx'
+import HintsBox from '../components/hintsBox.jsx'
+import CountdownTimer from '../components/timer.jsx'
+import VidSection from '../components/cameraSection.jsx'
+
+import { useCallback, useEffect, useState } from "react";
+import GridLayout, { Layout } from "react-grid-layout";
+
+import "react-grid-layout/css/styles.css";
+import "./ReportsGridResizeHandle.css";
+import {
+  UseResizeReturn,
+  Widget,
+  WidgetCardProps,
+  WidgetOnLayout,
+} from "../components/types";
+
+// Custom hook to handle responsive resizing of the grid container
+const useResize = (): UseResizeReturn => {
+  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+
+  useEffect(() => {
+    // Get the main container element
+    const reportsElement = document.getElementById("reports");
+
+    // Update dimensions when container size changes
+    const handleResize = () => {
+      if (!reportsElement) return;
+      setDimensions({
+        width: reportsElement.offsetWidth,
+        height: reportsElement.offsetHeight,
+      });
+    };
+
+    // Use ResizeObserver to watch for container size changes
+    const resizeObserver = new ResizeObserver(handleResize);
+    if (reportsElement) {
+      resizeObserver.observe(reportsElement);
+    }
+
+    // Cleanup observer on unmount
+    return () => resizeObserver.disconnect();
+  }, []);
+
+  // Calculate the height of each grid box accounting for gaps
+  const totalGapHeight = (GRID_CONFIG.MAX_ROWS - 1) * GRID_CONFIG.GAP;
+  const boxHeight = (dimensions.height - totalGapHeight) / GRID_CONFIG.MAX_ROWS;
+
+  return { wrapperWidth: dimensions.width, height: boxHeight };
+};
+
+// Header component for each widget with drag handle
+const HeaderItem = ({ title }: { title: string }) => (
+  <div className="px-4 py-2 flex cursor-grab items-center justify-between border-b border-silver">
+    <div className="draggable-handle text-back font-semibold flex-1">
+      {title}
+    </div>
+  </div>
+);
+
+// Sample widget content component showing a large number
+  
+const Timer = () => (
+
+  <div className = "wrapper">
+        <CountdownTimer/>
+      </div>
+);
+
+
+
+// Container component for widgets with drag functionality
+const WidgetCard = ({
+  children,
+  className = "",
+  draggable,
+  onDragStart,
+}: WidgetCardProps) => (
+  <div
+    className={`rounded-sm flex flex-col border border-silver bg-yellow-500 ${className}`}
+    draggable={draggable}
+    onDragStart={onDragStart}
+  >
+    {children}
+  </div>
+);
+
+// Grid configuration constants
+const GRID_CONFIG = {
+  COLS: 10,
+  MAX_ROWS: 10,
+  GAP: 20,
+} as const;
+
+
+
+export default function App() {
+
+
+  const[hints, setHints] = useState([
+    {"id": 0, 
+        "text": "Test1",
+        "hint": "Hint1",
+        "display": false}, 
+    {"id": 1,
+        "text": "Test2",
+        "hint": "Hint2",
+        "display": false},
+    {"id":2,
+        "text": "Test3",
+        "hint": "Hint3",
+        "display": false}]);
+
+const [changedDisplay, setChangedDisplay] =useState(true);
+const [hintId, setHintId] = useState(0);
+const [urls, setUrls] = useState(["localhost:3000", "192.168.0.1:3000"])
+    
+/*const progCheck = (searchID) => {
+  const newHints = hints;
+  newHints[searchID].display = !hints[searchID].display;
+  setHints(newHints);
+  setChangedDisplay(!changedDisplay);
+}*/
+
+const progCheck = (searchID) => {
+  setChangedDisplay(!changedDisplay);
+  setHintId(searchID);
+}
+
+// Initial available widgets data
+const INITIAL_WIDGETS: Widget[] = [
+  {
+    id: "1",
+    title: "Spiel-Progress",
+    component: <CheckboxList progCheck = {progCheck} hints= {hints}/>,
+  },
+  {
+    id: "2",
+    title: "Spielzeit",
+    component: <Timer />,
+  },
+  {
+    id: "3",
+    title: "Hinweise",
+    component: <HintsBox hints = {hints} id = {hintId} changed = {changedDisplay} />,
+  },
+  {
+    id: "4",
+    title: "Hinweise",
+    component: <HintsBox hints = {hints} id = {hintId} changed = {changedDisplay} />,
+  },
+  {
+    id: "5",
+    title: "Videos",
+    component: <VidSection urls = {urls}/>,
+  }
+  
+];
+
+// Initial layout configuration
+const INITIAL_LAYOUT: WidgetOnLayout[] = [
+  {
+    position: { i: "0", x: 0, y: 0, w: 1, h: 2 },
+    widget: { id: "0", title: "Line Chart", component: <CheckboxList progCheck = {progCheck} hints = {hints} /> },
+  },
+  {
+    position: { i: "2", x: 1, y: 0, w: 2, h: 5 },
+    widget: { id: "2", title: "Work orders", component: <Timer /> },
+  },
+];
+
+
+  // Get responsive dimensions from custom hook
+  const { wrapperWidth, height } = useResize();
+
+  // State for tracking widgets in the grid and available widgets
+  const [widgetsOnLayout, setWidgetsOnLayout] =
+    useState<WidgetOnLayout[]>(INITIAL_LAYOUT);
+  const [availableWidgets, setAvailableWidgets] =
+    useState<Widget[]>(INITIAL_WIDGETS);
+
+  // Handle dropping a widget from the sidebar onto the grid
+  const handleOndrop = (
+    _l: GridLayout.Layout[],
+    i: GridLayout.Layout,
+    e: Event
+  ) => {
+    const id = (e as DragEvent).dataTransfer?.getData("text/plain");
+    if (!id) throw new Error("Invalid widget id");
+
+    // Find the dragged widget from available widgets
+    const draggedWidget = availableWidgets.find((widget) => widget.id === id);
+    if (draggedWidget === undefined) throw new Error("Widget not found");
+
+    // Add widget to grid and remove from available widgets
+    setWidgetsOnLayout((prev) => [
+      ...prev,
+      {
+        position: { i: crypto.randomUUID(), x: i.x, y: i.y, w: 1, h: 1 },
+        widget: draggedWidget,
+      },
+    ]);
+    setAvailableWidgets((prev) => prev.filter((widget) => widget.id !== id));
+  };
+
+  // Update layout state when widgets are moved or resized
+  const handleLayoutChange = useCallback((newLayout: Layout[]) => {
+    setWidgetsOnLayout((prev) =>
+      newLayout.map((layout) => {
+        const widget = prev.find((w) => w.position.i === layout.i)?.widget;
+        if (!widget) throw new Error(`Widget not found for layout ${layout.i}`);
+        return { position: layout, widget };
+      })
+    );
+  }, []);
+
+  // Create placeholder grid layout
+  const placeholderLayout = Array.from({
+    length: GRID_CONFIG.COLS * GRID_CONFIG.MAX_ROWS,
+  }).map((_, index) => ({
+    i: index.toString(),
+    x: index % GRID_CONFIG.COLS,
+    y: Math.floor(index / GRID_CONFIG.COLS),
+    w: 1,
+    h: 1,
+  }));
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <div className="gap-2 flex h-full w-full flex-1 bg-red-900">
+      {/* Main grid container */}
+      <div className="relative h-auto w-full bg-blue-900" id="reports">
+        {/* Placeholder grid showing empty spaces */}
+        <div className="top-0 left-0 absolute h-full w-full">
+          <GridLayout
+            layout={placeholderLayout}
+            cols={4}
+            rowHeight={height}
+            width={wrapperWidth}
+            isDraggable={false}
+            isResizable={false}
+            maxRows={3}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+            {placeholderLayout.map((item) => (
+              <div key={item.i} className="rounded-sm bg-white" />
+            ))}
+          </GridLayout>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+
+        {/* Active grid with widgets */}
+        <GridLayout
+          layout={widgetsOnLayout.map((widget) => widget.position)}
+          cols={GRID_CONFIG.COLS}
+          rowHeight={height}
+          width={wrapperWidth}
+          maxRows={GRID_CONFIG.MAX_ROWS}
+          isDroppable={true}
+          onDrop={handleOndrop}
+          resizeHandles={["s", "e", "w"]}
+          onResizeStop={handleLayoutChange}
+          onDragStop={handleLayoutChange}
+          preventCollision={true}
+          compactType={"vertical"}
+          draggableHandle=".draggable-handle"
         >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          {widgetsOnLayout.map((widget) => (
+            <div key={widget.position.i}>
+              <WidgetCard className="h-full">
+                <HeaderItem title={widget.widget.title} />
+                {widget.widget.component}
+              </WidgetCard>
+            </div>
+          ))}
+        </GridLayout>
+      </div>
+
+      <div>
+        <HintsBox hints = {hints} id = {hintId} changed = {changedDisplay} />
+        <CheckboxList progCheck = {progCheck} hints = {hints} />
+      </div>
+
+      {/* Sidebar with available widgets */}
+      <aside className="w-96 p-4 bg-green-600 h-screen overflow-auto">
+        <h2 className="font-semibold">Available Widgets</h2>
+        {availableWidgets.map((widget) => (
+          <WidgetCard
+            key={widget.id}
+            className="mt-2"
+            draggable={true}
+            onDragStart={(e: React.DragEvent) => {
+              e.dataTransfer.setData("text/plain", widget.id);
+            }}
+          >
+            <HeaderItem title={widget.title} />
+            <div className="p-4 flex-1 overflow-auto">{widget.component}</div>
+          </WidgetCard>
+        ))}
+      </aside>
     </div>
   );
 }
+
