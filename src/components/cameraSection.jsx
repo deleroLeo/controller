@@ -1,5 +1,6 @@
+"use client"
+
 import React from 'react'
-//TEST changesas
 const VidPlayer = ({url}) => {
     const webrtc = new RTCPeerConnection({
       iceServers: [{
