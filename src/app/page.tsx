@@ -280,6 +280,7 @@ const INITIAL_LAYOUT: WidgetOnLayout[] = [
       </div>
 
       <div>
+        <VidSection urls = {urls}/>
         <HintsBox hints = {hints} id = {hintId} changed = {changedDisplay} />
         <CheckboxList progCheck = {progCheck} hints = {hints} />
       </div>
