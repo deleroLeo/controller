@@ -32,7 +32,7 @@ const VidPlayer = ({url}) => {
 
         fetch(url, {
           method: 'POST',
-          body: new URLSearchParams({ data: btoa(webrtc.localDescription.sdp) })
+          body: new URLSearchParams({ data: btoa(peerConnection.current.localDescription.sdp) })
         })
           .then(response => response.text())
           .then(data => {
