@@ -119,7 +119,7 @@ export default function App() {
 
 const [changedDisplay, setChangedDisplay] =useState(true);
 const [hintId, setHintId] = useState(0);
-const [urls, setUrls] = useState(["http://192.168.6.2:8083/stream/R14C/channel/0/webrtc", "http://192.168.6.2:8083/stream/Z-Immun/channel/0/webrtc"])
+const [urls, setUrls] = useState(["http://192.168.6.2:8083/stream/R14C/channel/1/webrtc", "http://192.168.6.2:8083/stream/Z-immun/channel/0/webrtc"])
     
 /*const progCheck = (searchID) => {
   const newHints = hints;
