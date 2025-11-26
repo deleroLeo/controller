@@ -10,6 +10,7 @@ const VidPlayer = ({url}) => {
   const remoteVideoRef = useRef(null);
   const webrtcSendChannel = useRef(null);
   const peerConnection = useRef(null);
+  const remoteStream = useRef(null);
 
   useEffect(() => {
       peerConnection.current = new RTCPeerConnection({
@@ -18,8 +19,11 @@ const VidPlayer = ({url}) => {
       }],
       sdpSemantics: 'unified-plan'})
 
-      peerConnection.current.ontrack = event => {
-        remoteVideoRef.current.srcObject = event.streams[0]
+      remoteStream.current = new MediaStream();
+      remoteVideoRef.current.srcObject = remoteStream;
+
+      peerConnection.current.ontrack = (event) => {
+        remoteStream.current.addTrack(event.track)
         console.log(event.streams.length + ' track is delivered')};
       
     
