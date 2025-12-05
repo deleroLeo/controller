@@ -65,7 +65,7 @@ const VidPlayer = ({url}) => {
    return (
     <div>
       
-        <video  ref = {remoteVideoRef} autoplay controls style={{width: '100%', height: 'auto'}}/>
+        <video  ref = {remoteVideoRef} autoPlay controls style={{width: '100%', height: 'auto'}}/>
       
     </div>
    )

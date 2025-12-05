@@ -7,13 +7,10 @@ const transporter = nodemailer.createTransport({
   port: 587,
   secure: false, // true for 465, false for other ports
   auth: {
-    user: "maddison53@ethereal.email",
-    pass: "jn7jnAPss4f63QBp6D",
+    user: "",
+    pass: "",
   },
 });
-
-
-
 
 const client = new ImapFlow({
     host: 'imap.gmail.com',

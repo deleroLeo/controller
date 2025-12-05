@@ -1,10 +1,19 @@
 "use client"
 
+import './globals.css'
+
 import React from 'react'
 import CheckboxList from '../components/checkbox.jsx'
 import HintsBox from '../components/hintsBox.jsx'
 import CountdownTimer from '../components/timer.jsx'
 import VidSection from '../components/cameraSection.jsx'
+import GridItem from '../components/gridItem.jsx'
+import Sidebar from "../components/sidebar.jsx"
+import Settings from "../components/settings.jsx"
+import ChatBox from "../components/chat.jsx"
+import widgetList from "../components/widgetList.jsx"
+
+import { socket } from "../socket";
 
 import { useCallback, useEffect, useState } from "react";
 import GridLayout, { Layout } from "react-grid-layout";
@@ -12,14 +21,20 @@ import GridLayout, { Layout } from "react-grid-layout";
 import { v4 as uuidv4 } from 'uuid';
 let uuid = uuidv4(); 
 
-import "react-grid-layout/css/styles.css";
 import "./ReportsGridResizeHandle.css";
+import { Responsive, WidthProvider } from 'react-grid-layout';
+//import GridItem from './GridItem';
+
+import 'react-grid-layout/css/styles.css';
+import 'react-resizable/css/styles.css';
 import {
   UseResizeReturn,
   Widget,
   WidgetCardProps,
   WidgetOnLayout,
 } from "../components/types";
+
+const ResponsiveGridLayout = WidthProvider(Responsive) as any;
 
 // Custom hook to handle responsive resizing of the grid container
 const useResize = (): UseResizeReturn => {
@@ -67,12 +82,10 @@ const HeaderItem = ({ title }: { title: string }) => (
 // Sample widget content component showing a large number
   
 const Timer = () => (
-
   <div className = "wrapper">
         <CountdownTimer/>
       </div>
 );
-
 
 
 // Container component for widgets with drag functionality
@@ -98,12 +111,7 @@ const GRID_CONFIG = {
   GAP: 20,
 } as const;
 
-
-
-export default function App() {
-
-
-  const[hints, setHints] = useState([
+const hints = [
     {"id": 0, 
         "text": "Test1",
         "hint": "Hint1",
@@ -115,194 +123,302 @@ export default function App() {
     {"id":2,
         "text": "Test3",
         "hint": "Hint3",
-        "display": false}]);
+        "display": false}];
 
-const [changedDisplay, setChangedDisplay] =useState(true);
-const [hintId, setHintId] = useState(0);
-const [urls, setUrls] = useState(["http://192.168.6.2:8083/stream/R14C/channel/1/webrtc", "http://192.168.6.2:8083/stream/Z-immun/channel/0/webrtc"])
-    
-/*const progCheck = (searchID) => {
-  const newHints = hints;
-  newHints[searchID].display = !hints[searchID].display;
-  setHints(newHints);
-  setChangedDisplay(!changedDisplay);
-}*/
-
-const progCheck = (searchID) => {
-  setChangedDisplay(!changedDisplay);
-  setHintId(searchID);
-}
-
-// Initial available widgets data
-const INITIAL_WIDGETS: Widget[] = [
-  {
-    id: "1",
-    title: "Spiel-Progress",
-    component: <CheckboxList progCheck = {progCheck} hints= {hints}/>,
-  },
-  {
-    id: "2",
-    title: "Spielzeit",
-    component: <Timer />,
-  },
-  {
-    id: "3",
-    title: "Hinweise",
-    component: <HintsBox hints = {hints} id = {hintId} changed = {changedDisplay} />,
-  },
-  {
-    id: "4",
-    title: "Hinweise",
-    component: <HintsBox hints = {hints} id = {hintId} changed = {changedDisplay} />,
-  },
-  {
-    id: "5",
-    title: "Videos",
-    component: <VidSection urls = {urls}/>,
+/*const onAddItem = () => {
+    console.log("adding", "n" + this.state.newCounter);
+    setState({
+      // Add a new item. It must have a unique key!
+      items: this.state.items.concat({
+        i: "n" + this.state.newCounter,
+        x: (this.state.items.length * 2) % (this.state.cols || 12),
+        y: Infinity, // puts it at the bottom
+        w: 2,
+        h: 2
+      }),
+      // Increment the counter to ensure key is always unique.
+      newCounter: this.state.newCounter + 1
+    });
   }
-  
-];
-
-// Initial layout configuration
-const INITIAL_LAYOUT: WidgetOnLayout[] = [
-  {
-    position: { i: "0", x: 0, y: 0, w: 1, h: 2 },
-    widget: { id: "0", title: "Line Chart", component: <CheckboxList progCheck = {progCheck} hints = {hints} /> },
-  },
-  {
-    position: { i: "2", x: 1, y: 0, w: 2, h: 5 },
-    widget: { id: "2", title: "Work orders", component: <Timer /> },
-  },
-];
+*/
 
 
-  // Get responsive dimensions from custom hook
-  const { wrapperWidth, height } = useResize();
 
-  // State for tracking widgets in the grid and available widgets
-  const [widgetsOnLayout, setWidgetsOnLayout] =
-    useState<WidgetOnLayout[]>(INITIAL_LAYOUT);
-  const [availableWidgets, setAvailableWidgets] =
-    useState<Widget[]>(INITIAL_WIDGETS);
 
-  // Handle dropping a widget from the sidebar onto the grid
-  const handleOndrop = (
-    _l: GridLayout.Layout[],
-    i: GridLayout.Layout,
-    e: Event
-  ) => {
-    const id = (e as DragEvent).dataTransfer?.getData("text/plain");
-    if (!id) throw new Error("Invalid widget id");
+export default function App() {
 
-    // Find the dragged widget from available widgets
-    const draggedWidget = availableWidgets.find((widget) => widget.id === id);
-    if (draggedWidget === undefined) throw new Error("Widget not found");
+  const [isConnected, setIsConnected] = useState(false);
+  const [transport, setTransport] = useState("N/A");
 
-    // Add widget to grid and remove from available widgets
-    setWidgetsOnLayout((prev) => [
-      ...prev,
-      {
-        position: { i: uuid, x: i.x, y: i.y, w: 1, h: 1 },
-        widget: draggedWidget,
-      },
-    ]);
-    setAvailableWidgets((prev) => prev.filter((widget) => widget.id !== id));
+  const [genSettings, setgenSettings] = useState([]);
+  const [camSettings, setCamSettings] = useState([]);
+
+  const [room, setRoom] = useState("undefined")
+  const [username, setUsername] = useState("controller")
+
+   
+
+
+  const [chatLog, setChatLog] = useState([{
+    text:"test",
+    username: "controller",
+    time: "1234"
+    
+  }]);
+
+  const newMessage = (msg) => {
+    setChatLog((prevChatLog) => [
+      ...prevChatLog, msg
+    ])
   };
 
-  // Update layout state when widgets are moved or resized
-  const handleLayoutChange = useCallback((newLayout: Layout[]) => {
-    setWidgetsOnLayout((prev) =>
-      newLayout.map((layout) => {
-        const widget = prev.find((w) => w.position.i === layout.i)?.widget;
-        if (!widget) throw new Error(`Widget not found for layout ${layout.i}`);
-        return { position: layout, widget };
-      })
-    );
+  const [user, setUser] = useState({
+    room: "R14C",
+    username: "controller",
+    id: "0"
+  })
+
+  useEffect(() => {
+    if (socket.connected) {
+      onConnect();
+    }
+
+    function onConnect() {
+      setIsConnected(true);
+      setTransport(socket.io.engine.transport.name);
+      socket.emit('joinRoom', user);
+      socket.io.engine.on("upgrade", (transport) => {
+        setTransport(transport.name);
+      });
+    }
+
+    function onDisconnect() {
+      setIsConnected(false);
+      setTransport("N/A");
+    }
+
+    socket.on("connect", onConnect);
+    socket.on("disconnect", onDisconnect);
+
+    return () => {
+      socket.off("connect", onConnect);
+      socket.off("disconnect", onDisconnect);
+    };
   }, []);
 
-  // Create placeholder grid layout
-  const placeholderLayout = Array.from({
-    length: GRID_CONFIG.COLS * GRID_CONFIG.MAX_ROWS,
-  }).map((_, index) => ({
-    i: index.toString(),
-    x: index % GRID_CONFIG.COLS,
-    y: Math.floor(index / GRID_CONFIG.COLS),
-    w: 1,
-    h: 1,
-  }));
+  const getSettings = (type) => {
+    return new Promise ((resolve) => {
+      socket.emit(type);
+      socket.once("settingLog", (settings) => {
+      //console.log("settings:", settings)
+      resolve(settings);
+    });
+    })  
+  };
+
+  const saveSettings = (type, settings) => {
+    socket.emit(type, (settings));
+    console.log(settings);
+  };
+
+  const sendMessage = (newText) => {
+    const msg = {text: newText,
+                            username: "player",
+                            time: 123
+      }
+    socket.emit("Message", (msg))  ;
+    console.log("message is beeing sent: ", msg);
+    newMessage(msg);
+  }
+
+  socket.on("Message", (msg) => {
+    newMessage(msg);
+    console.log(msg);
+  });
+
+ 
+
+
+
+
+
+
+  
+  const [newCounter, setNewCounter] = useState(1)
+  const [changedDisplay, setChangedDisplay] =useState(true);
+  const [activeHint, setActiveHint] = useState(0);
+  const [urls, setUrls] = useState(["http://192.168.6.2:8083/stream/R14C/channel/1/webrtc", "http://192.168.6.2:8083/stream/Z-immun/channel/0/webrtc"])
+  
+  const [items, setItems] = useState([ {
+    position:{"i": "3184",
+    "w": 2,
+    "h": 1,
+    "x": 0,
+    "y": 0,
+    
+    "moved": false,
+    "static": false},
+    title: "Hints"
+  },
+  {
+    position: {"i": "3232",
+    "w": 2,
+    "h": 3,
+    "x": 3,
+    "y": 0,
+    "moved": false,
+    "static": false},
+    title: "Progress"
+  },
+  {
+    position: {"i": "3216",
+    "w": 2,
+    "h": 2,
+    "x": 0,
+    "y": 3,
+    "moved": false,
+    "static": false},
+    title: "Spielzeit"
+  },
+  {
+    position: {"i": "3196",
+    "w": 1,
+    "h": 2,
+    "x": 3,
+    "y": 3,
+    "moved": false,
+    "static": false},
+    title: "SocketInfo"
+  },
+  {
+    position: {"i": "4040",
+    "w": 2,
+    "h": 2,
+    "x": 4,
+    "y": 3,
+    "moved": false,
+    "static": false},
+    title: "Settings"
+  },
+  {
+    position: {"i": "4041",
+    "w": 3,
+    "h": 3,
+    "x": 0,
+    "y": 5,
+    "moved": false,
+    "static": false},
+    title: "Chat"
+  },
+]);
+
+  const addItem = (newItem) =>{
+    let item = newItem
+    item.position.i = "n"+newCounter
+    const newItems = items.concat(item
+    );
+    setItems(newItems);
+    //const count = newCounter;
+    setNewCounter((prevCounter)=>prevCounter+1)
+  }
+
+  const [layout, setLayout] = useState(items)
+
+  const handleDragAndResize = useCallback((layout, oldItem, newItem) => {
+    
+    setLayout(layout);
+  }, []);
+
+  const [presets, setPresets]= useState([
+    {"title": "R14C",
+     "layout": []
+    },
+    {"title": "Buch7Siegel",
+      "layout": []
+    },
+    {"title": "Labor",
+     "layout": []
+    }]);
+
+  const safePreset = (presName) =>{
+    let tempLayout = []
+    items.map(({title}, index)=> {
+      //console.log(layout[index])
+      //console.log(layout[index].position)
+      tempLayout.push({
+        "position": layout[index],
+        "title": title
+      })
+    })
+    const newEl = {"title": presName,
+                  "layout": tempLayout
+                                    
+    }
+    saveSettings("preset-save", [...presets, newEl])
+    setPresets((prevPresets)=>[...prevPresets, newEl])
+}
+
+const loadPreset = (presName) => {
+  console.log("title we are searching", presName)
+  let tempItems = presets.find(o => o.title == presName);
+  setItems(tempItems.layout)
+}
 
   return (
-    <div className="gap-2 flex h-full w-full flex-1 bg-red-900">
-      {/* Main grid container */}
-      <div className="relative h-auto w-full bg-blue-900" id="reports">
-        {/* Placeholder grid showing empty spaces */}
-        <div className="top-0 left-0 absolute h-full w-full">
-          <GridLayout
-            layout={placeholderLayout}
-            cols={4}
-            rowHeight={height}
-            width={wrapperWidth}
-            isDraggable={false}
-            isResizable={false}
-            maxRows={3}
-          >
-            {placeholderLayout.map((item) => (
-              <div key={item.i} className="rounded-sm bg-white" />
-            ))}
-          </GridLayout>
+    <div className = ''>
+    
+    <ResponsiveGridLayout
+      breakpoints={{ md: 960, sm: 720 }}
+      cols={{ md: 10, sm: 8 }}
+      rowHeight={60}
+      layouts={{md: items.map((widget) =>widget.position),
+               sm: items.map((widget) =>widget.position)}}
+      onDragStop={handleDragAndResize}
+      onResizeStop={handleDragAndResize}
+      draggableHandle=".draggable-handle"
+      resizeHandles={["s", "e", "w"]}
+      preventCollision={true}
+      compactType={"vertical"}
+    >
+      {items.map((item) => (
+        <div key={item.position.i}>
+                    
+          <GridItem 
+                item = {
+                      item.title === "Hints" ?
+                        <HintsBox hints={hints} id={activeHint} /> :
+                      item.title === "Progress" ?
+                        <CheckboxList hints={hints} progCheck={setActiveHint} /> :
+                      item.title === "Spielzeit" ?
+                        <Timer /> :
+                      item.title === "div" ?
+                        <div>{item.title}</div>:
+                      item.title === "Chat" ?
+                        <ChatBox chatLog = {chatLog} sendMessage= {sendMessage}/>:
+                      item.title === "Settings" ?
+                        <div><Settings getSettings = {getSettings} saveSettings = {saveSettings}/></div>:
+                      item.title === "VidSection" ?
+                        <div><VidSection urls = {urls}/></div>:
+                      item.title === "SocketInfo" ? 
+                        <div>
+                        <p>Status: { isConnected ? "connected" : "disconnected" }</p>
+                        <p>Transport: { transport }</p>
+                        </div> :null}
+               header= {item.title}/>
         </div>
+      ))}
+    </ResponsiveGridLayout>
 
-        {/* Active grid with widgets */}
-        <GridLayout
-          layout={widgetsOnLayout.map((widget) => widget.position)}
-          cols={GRID_CONFIG.COLS}
-          rowHeight={height}
-          width={wrapperWidth}
-          maxRows={GRID_CONFIG.MAX_ROWS}
-          isDroppable={true}
-          onDrop={handleOndrop}
-          resizeHandles={["s", "e", "w"]}
-          onResizeStop={handleLayoutChange}
-          onDragStop={handleLayoutChange}
-          preventCollision={true}
-          compactType={"vertical"}
-          draggableHandle=".draggable-handle"
-        >
-          {widgetsOnLayout.map((widget) => (
-            <div key={widget.position.i}>
-              <WidgetCard className="h-full">
-                <HeaderItem title={widget.widget.title} />
-                {widget.widget.component}
-              </WidgetCard>
-            </div>
-          ))}
-        </GridLayout>
-      </div>
-
-      <div>
-        <VidSection urls = {urls}/>
-        <HintsBox hints = {hints} id = {hintId} changed = {changedDisplay} />
-        <CheckboxList progCheck = {progCheck} hints = {hints} />
-      </div>
-
-      {/* Sidebar with available widgets */}
-      <aside className="w-96 p-4 bg-green-600 h-screen overflow-auto">
-        <h2 className="font-semibold">Available Widgets</h2>
-        {availableWidgets.map((widget) => (
-          <WidgetCard
-            key={widget.id}
-            className="mt-2"
-            draggable={true}
-            onDragStart={(e: React.DragEvent) => {
-              e.dataTransfer.setData("text/plain", widget.id);
-            }}
-          >
-            <HeaderItem title={widget.title} />
-            <div className="p-4 flex-1 overflow-auto">{widget.component}</div>
-          </WidgetCard>
-        ))}
-      </aside>
+    <button onClick= {()=>addItem({position: {"i": "n"+newCounter,
+                                        "w": 1,
+                                        "h": 1,
+                                        "x": 4,
+                                        "y": 4*2,
+                                        "moved": false,
+                                        "static": false},
+                                        title: "4"
+  })}>New Item</button>
+    <Sidebar widgetList = {widgetList} addItem = {addItem} getSettings={getSettings} safePreset={safePreset} presets = {presets} setPresets = {setPresets} loadPreset={loadPreset}/>
     </div>
   );
 }
-
