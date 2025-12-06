@@ -3,9 +3,12 @@ import next from "next";
 import { Server } from "socket.io";
 
 
+
 //const fs = require('fs');
 
 import  formatMessage  from "./src/utils/messages.js";
+import  {delMails, sendMail}  from "./src/utils/mail.js";
+
 import {userJoin, getCurrentUser, userLeave, getRoomUsers} from "./src/utils/users.js";
 
 import fs from 'fs';
@@ -54,7 +57,23 @@ app.prepare().then(() => {
         });
 
         socket.on('send-morse', (room) => {
-            //...
+            sendMail({
+                from: '"Ein Supporter" <blr43x@gmail.com>',
+                to: "cmx72x@gmail.com",
+                subject: "Abgefangene Nachricht",
+                text: "Konnte noch was aus ihrer privater Kommunikation Abfangen. Schaut mal! \n LG Meli",
+                attachments: [
+                {
+                    filename: "morsecode.wav",
+                    path: "./src/utils/10_morsecode.wav"
+                },
+                /*{
+                    filename: "photo.jpg",
+                    content: "/9j/4AAQSkZJRgABAQAAAQABAAD…", // truncated
+                    encoding: "base64",
+                }*/
+                ]
+        })
         });
 
         socket.on('send-cam', (room) => {
@@ -62,7 +81,7 @@ app.prepare().then(() => {
         });
 
         socket.on('mail-reset', (room)=>{
-            //....
+            delMails()
         });
 
         socket.on('settings-save', (settings) => {

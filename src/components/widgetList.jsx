@@ -76,6 +76,17 @@ const widgetList = [ {
     title: "VidSection",
     settings: []
   },
+  {
+    position: {"i": "4042",
+    "w": 3,
+    "h": 3,
+    "x": 0,
+    "y": 5,
+    "moved": false,
+    "static": false},
+    title: "Mails",
+    settings: []
+  },
 
 ]
 

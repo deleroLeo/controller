@@ -7,8 +7,8 @@ const transporter = nodemailer.createTransport({
   port: 587,
   secure: false, // true for 465, false for other ports
   auth: {
-    user: "",
-    pass: "",
+    user: "blr43x@gmail.com",
+    pass: "vkvicooiqsgfjkgb",
   },
 });
 
@@ -17,21 +17,65 @@ const client = new ImapFlow({
     port: 993,
     secure: true,
     auth: {
-        user: '',
-        pass: ''
+        user: 'cmx72x@gmail.com',
+        pass: 'frbpukwpdxzutpcf'
     }
 });
 
-const del_inbox = async () => {
+
+
+async function deleteAllInFolder(folder) {
+    const client = new ImapFlow({
+        host: "imap.gmail.com",
+        port: 993,
+        secure: true,
+        auth: {
+            user: "cmx72x@gmail.com",
+            pass: "frbpukwpdxzutpcf"
+        }
+    });
+
     await client.connect();
 
-    let lock = await client.getMailboxLock('"[Gmail]/Alle Nachrichten"');
+    const lock = await client.getMailboxLock(folder);
+
+    try {
+        console.log("Deleting messages in:", folder);
+
+        // Mark ALL messages as \Deleted
+        await client.messageFlagsAdd("1:*", ["\\Deleted"]);
+        if (folder == "[Gmail]/Alle Nachrichten") {
+        await client.messageFlagsAdd("1:*", ["\\Trash"],{ useLabels: true})}
+
+        // EXPUNGE (wirklich löschen!)
+        await client.mailboxClose(true);
+
+    } finally {
+        lock.release();
+    }
+
+    await client.logout();
+}
+
+
+const del_inbox = async () => {
+    await client.connect();
+    getGmailFolders(client);
+    let lock = await client.getMailboxLock('[Gmail]/Alle Nachrichten');
     try {        
         await client.messageDelete();
 
 
     } finally {
         lock.release();
+    }
+
+    let lock2 = await client.getMailboxLock('[Gmail]/Papierkorb');
+    try {        
+        await client.messageFlagsAdd('1:*', ['\\Deleted']);
+        await client.messageDelete();
+    } finally {
+        lock2.release();
     }
 
 
@@ -41,9 +85,9 @@ const del_inbox = async () => {
 const del_trash = async () => {
     await client.connect();
 
-    let lock = await client.getMailboxLock('"[Gmail]/Papierkorb"');
+    let lock = await client.getMailboxLock('[Gmail]/Papierkorb');
     try {        
-        await client.messageFlagsAdd('1:* ', ['\\Deleted']);
+        await client.messageFlagsAdd('1:*', ['\\Deleted']);
         await client.messageDelete();
     } finally {
         lock.release();
@@ -53,24 +97,43 @@ const del_trash = async () => {
     await client.logout();
 }
 
-const send_mail = async () => {
+const sendMail = async ({from, to, subject, text, attachments}) => {
+    console.log("started Mail Process")
     const info = await transporter.sendMail({
-        from: '"Ein Supporter" <blr43x@gmail.com>',
+        from: from,
+        to: to,
+        subject: subject,
+        text: text,
+        attachments: attachments
+    })
+}
+const delMails = () =>{
+    deleteAllInFolder("INBOX");
+    deleteAllInFolder("[Gmail]/Alle Nachrichten");
+    deleteAllInFolder("[Gmail]/Papierkorb");
+    sendMail({
+        from: '"Meli Drechsler" <meli.drechsler@gmail.com>',
         to: "cmx72x@gmail.com",
-        subject: "Abgefangene Nachricht",
-        text: "Hello world",
+        subject: "Wie gewünscht :)",
+        text: "Hier wie besprochen nochmal die 09 \n LG \n Meli",
         attachments: [
         {
-            filename: "morsecode.wav",
-            path: "/absolutepath to it"
+            filename: "09.zip",
+            path: "./src/utils/09.zip"
         },
-        {
+        /*{
             filename: "photo.jpg",
             content: "/9j/4AAQSkZJRgABAQAAAQABAAD…", // truncated
             encoding: "base64",
-        }
+        }*/
         ]
     })
+
 }
 
 
+
+module.exports = {
+    delMails,
+    sendMail
+};

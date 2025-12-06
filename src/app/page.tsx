@@ -12,6 +12,7 @@ import Sidebar from "../components/sidebar.jsx"
 import Settings from "../components/settings.jsx"
 import ChatBox from "../components/chat.jsx"
 import widgetList from "../components/widgetList.jsx"
+import MailControl from "../components/mail.jsx"
 
 import { socket } from "../socket";
 
@@ -216,6 +217,14 @@ export default function App() {
     })  
   };
 
+  const delMail = () =>{
+    socket.emit("mail-reset", (room))
+  }
+
+  const sendMail = () => {
+    socket.emit("send-morse", (room))
+  };
+
   const saveSettings = (type, settings) => {
     socket.emit(type, (settings));
     console.log(settings);
@@ -397,6 +406,8 @@ const loadPreset = (presName) => {
                         <ChatBox chatLog = {chatLog} sendMessage= {sendMessage}/>:
                       item.title === "Settings" ?
                         <div><Settings getSettings = {getSettings} saveSettings = {saveSettings}/></div>:
+                      item.title === "Mails" ?
+                        <div><MailControl sendMail = {sendMail} delMail = {delMail}/></div>:
                       item.title === "VidSection" ?
                         <div><VidSection urls = {urls}/></div>:
                       item.title === "SocketInfo" ? 

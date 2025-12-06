@@ -20,7 +20,7 @@ const VidPlayer = ({url}) => {
       sdpSemantics: 'unified-plan'})
 
       remoteStream.current = new MediaStream();
-      remoteVideoRef.current.srcObject = remoteStream;
+      remoteVideoRef.current.srcObject = remoteStream.current;
 
       peerConnection.current.ontrack = (event) => {
         remoteStream.current.addTrack(event.track)
@@ -57,7 +57,7 @@ const VidPlayer = ({url}) => {
     }
     webrtcSendChannel.current.onclose = (_event) => {
       console.log(`${webrtcSendChannel.current.label} has closed`)
-      VidPlayer(url)
+      //VidPlayer(url)
     }
     webrtcSendChannel.current.onmessage = event => console.log(event.data)
 
