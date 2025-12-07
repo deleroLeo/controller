@@ -1,22 +1,11 @@
 [
   {
-    "title": "R14C",
-    "layout": []
-  },
-  {
-    "title": "Buch7Siegel",
-    "layout": []
-  },
-  {
-    "title": "Labor",
-    "layout": []
-  },
-  {
-    "title": "asdf",
+    "title": "DefaultWidget_Mails",
+    "room": "default",
     "layout": [
       {
         "position": {
-          "w": 1,
+          "w": 2,
           "h": 1,
           "x": 0,
           "y": 0,
@@ -28,9 +17,9 @@
       },
       {
         "position": {
-          "w": 1,
-          "h": 1,
-          "x": 1,
+          "w": 2,
+          "h": 3,
+          "x": 3,
           "y": 0,
           "i": "3232",
           "moved": false,
@@ -40,164 +29,10 @@
       },
       {
         "position": {
-          "w": null,
+          "w": 2,
           "h": 2,
-          "x": null,
-          "y": 3,
-          "i": "3216",
-          "moved": false,
-          "static": false
-        },
-        "title": "Spielzeit"
-      },
-      {
-        "position": {
-          "w": 1,
-          "h": 1,
-          "x": null,
-          "y": 2,
-          "i": "3196",
-          "moved": false,
-          "static": false
-        },
-        "title": "SocketInfo"
-      },
-      {
-        "position": {
-          "w": 1,
-          "h": 1,
-          "x": null,
-          "y": 1,
-          "i": "4040",
-          "moved": false,
-          "static": false
-        },
-        "title": "Settings"
-      },
-      {
-        "position": {
-          "w": 1,
-          "h": 1,
           "x": 5,
           "y": 0,
-          "i": "4041",
-          "moved": false,
-          "static": false
-        },
-        "title": "Chat"
-      }
-    ]
-  },
-  {
-    "title": "TESSST",
-    "layout": [
-      {
-        "position": {
-          "w": 1,
-          "h": 1,
-          "x": 0,
-          "y": 0,
-          "i": "3184",
-          "moved": false,
-          "static": false
-        },
-        "title": "Hints"
-      },
-      {
-        "position": {
-          "w": 1,
-          "h": 1,
-          "x": 1,
-          "y": 0,
-          "i": "3232",
-          "moved": false,
-          "static": false
-        },
-        "title": "Progress"
-      },
-      {
-        "position": {
-          "w": 1,
-          "h": 1,
-          "x": 2,
-          "y": 0,
-          "i": "3216",
-          "moved": false,
-          "static": false
-        },
-        "title": "Spielzeit"
-      },
-      {
-        "position": {
-          "w": 1,
-          "h": 1,
-          "x": 3,
-          "y": 0,
-          "i": "3196",
-          "moved": false,
-          "static": false
-        },
-        "title": "SocketInfo"
-      },
-      {
-        "position": {
-          "w": 1,
-          "h": 1,
-          "x": 4,
-          "y": 0,
-          "i": "4040",
-          "moved": false,
-          "static": false
-        },
-        "title": "Settings"
-      },
-      {
-        "position": {
-          "w": 1,
-          "h": 1,
-          "x": 7,
-          "y": 0,
-          "i": "4041",
-          "moved": false,
-          "static": false
-        },
-        "title": "Chat"
-      }
-    ]
-  },
-  {
-    "title": "Default",
-    "layout": [
-      {
-        "position": {
-          "w": 2,
-          "h": 1,
-          "x": 0,
-          "y": 0,
-          "i": "3184",
-          "moved": false,
-          "static": false
-        },
-        "title": "Hints"
-      },
-      {
-        "position": {
-          "w": 2,
-          "h": 3,
-          "x": 2,
-          "y": 0,
-          "i": "3232",
-          "moved": false,
-          "static": false
-        },
-        "title": "Progress"
-      },
-      {
-        "position": {
-          "w": 2,
-          "h": 3,
-          "x": 6,
-          "y": 0,
           "i": "3216",
           "moved": false,
           "static": false
@@ -221,7 +56,7 @@
           "w": 2,
           "h": 2,
           "x": 4,
-          "y": 0,
+          "y": 3,
           "i": "4040",
           "moved": false,
           "static": false
@@ -239,6 +74,18 @@
           "static": false
         },
         "title": "Chat"
+      },
+      {
+        "position": {
+          "w": 2,
+          "h": 2,
+          "x": 0,
+          "y": 1,
+          "i": "n1",
+          "moved": false,
+          "static": false
+        },
+        "title": "Mails"
       }
     ]
   }

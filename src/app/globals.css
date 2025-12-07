@@ -35,6 +35,10 @@
 
 }
 
+.react-resizable-handle {
+    opacity: 0;
+}
+
 
 /* ----------  General Code  ---------- */
 body{

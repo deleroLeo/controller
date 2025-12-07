@@ -1,7 +1,7 @@
 "use client"
 
 import React from 'react'
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useState,useEffect, useRef } from "react";
 
 
 const VidPlayer = ({url}) => {
@@ -72,18 +72,73 @@ const VidPlayer = ({url}) => {
     
   }
 
+const VidSettings = ({getSettings, setCam}) => {
+  const [cams, setCams] = useState([]);
+  const [selectCam, setSelectCam] = useState("");
 
-const VidSection = ({urls}) => {
+  const getCams = async() => {
+      const tempSettings = await getSettings('cams-load');
+      console.log("The cams we want to see:",tempSettings)
+      setCams(tempSettings);
+    }
+  useEffect(()=>{
+    getCams();
+  },[])
+  return(
+    <div>
+      <div>Cam Auswählen:</div>
+      <select name="rooms" id="rooms" defaultValue = "hidden" onChange={(e) => setSelectCam(e.target.value)}>
+            <option disabled={true} value="hidden">Kamera wählen</option>
+            {cams.map(({name}) =>
+            <option key = {name} value={name} >{name}</option>
+            )}
+            </select>
+            <button onClick={()=>setCam(cams.find((cam) => cam.name == selectCam))}>Cam Auswählen</button>
+      
+    </div>
+  )
+}
+
+const VidSection = ({getSettings}) => {
+  const [cam, setCam] = useState({type:null});
+
+  useEffect(()=>{
+    console.log(cam)
+  },[cam])
+  
+  if (cam.type==="rtsp"){
     return(
+      <div>
+      <VidSettings setCam = {setCam} getSettings = {getSettings}/>
       <div className="flex h-full flex-col items-center justify-center">
-        {urls.map((url) => 
-          <VidPlayer url = {url}/>
-        )}
+        
+          <VidPlayer url = {cam.url}/>
+        
+      </div>
+      </div>
+    )}
+  if (cam.type ==="http"){
+    return(
+      <div>
+      <VidSettings setCam = {setCam} getSettings = {getSettings}/>
+      <div className="flex h-full flex-col items-center justify-center">
+        
+          <iframe src={cam.url}></iframe>
+        
+      </div>
       </div>
     )
+  }
+  return(<div>
+    <VidSettings setCam = {setCam} getSettings = {getSettings}/>
+
+    
+    </div>)
+  
 }
 
 export default VidSection
+//export default VidPlayer
 
 
 

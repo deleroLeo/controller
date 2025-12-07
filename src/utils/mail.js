@@ -7,8 +7,8 @@ const transporter = nodemailer.createTransport({
   port: 587,
   secure: false, // true for 465, false for other ports
   auth: {
-    user: "blr43x@gmail.com",
-    pass: "vkvicooiqsgfjkgb",
+    user: "",
+    pass: "",
   },
 });
 
@@ -17,8 +17,8 @@ const client = new ImapFlow({
     port: 993,
     secure: true,
     auth: {
-        user: 'cmx72x@gmail.com',
-        pass: 'frbpukwpdxzutpcf'
+        user: '',
+        pass: ''
     }
 });
 
@@ -30,8 +30,8 @@ async function deleteAllInFolder(folder) {
         port: 993,
         secure: true,
         auth: {
-            user: "cmx72x@gmail.com",
-            pass: "frbpukwpdxzutpcf"
+            user: "",
+            pass: ""
         }
     });
 

@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import * as FaIcons from "react-icons/fa";
 import * as AiIcons from "react-icons/ai";
 import { IconContext } from "react-icons/lib";
+import ChooseRoom from "./chooseRoom.jsx";
 
 const Nav = styled.div`
     background: #15171c;
@@ -57,17 +58,18 @@ const PresetList = [
 
 
 
-const Presets = ({safePreset, getSettings, presets, setPresets, loadPreset}) => {
+const Presets = ({safePreset, getSettings, presets, setPresets, loadPreset, activeRoom}) => {
     
-
+    const [displayPresets, setDisplayPresets] = useState([]);
     const getPresets = async() =>{
-        const tempSettings = await getSettings('presets-load')
-        console.log("the settings that should be displayed:",tempSettings);
+        let tempSettings = await getSettings('presets-load')
+        console.log("the Presets that should be displayed:",tempSettings);
         setPresets(tempSettings);
     }
 
     useEffect(() =>{
-        getPresets();
+        getPresets(); 
+        setDisplayPresets(presets.filter((preset)=>{preset.room==activeRoom}))
     }, [])
 
     const [presName, setPresName] = useState("");
@@ -79,7 +81,8 @@ const Presets = ({safePreset, getSettings, presets, setPresets, loadPreset}) => 
     return (
         <div>   
             Preset Auswählen:
-        <select name="presets" id="presets" onChange={(e) => setSelectTitle(e.target.value)}>
+        <select name="presets" id="presets" defaultValue="hidden" onChange={(e) => setSelectTitle(e.target.value)}>
+            <option disabled={true} value="hidden">Preset wählen</option>
             {presets.map(({title}) =>
             <option key = {title} value={title} >{title}</option>
             )}
@@ -95,12 +98,15 @@ const Presets = ({safePreset, getSettings, presets, setPresets, loadPreset}) => 
     )
 } 
 
+
+
 const AddWidget = ({widgetList, addItem}) => {
     const [selectWidget, setSelectWidget] = useState("")
 
     return(
         <div>
-        <select name="presets" id="presets" onChange={(e) => setSelectWidget(e.target.value)}>
+        <select name="presets" id="presets" defaultValue="hidden" onChange={(e) => setSelectWidget(e.target.value)}>
+            <option disabled={true} value="hidden">Widget wählen</option>
             {widgetList.map(({title}) =>
             <option key = {title} value={title} >{title}</option>
             )}
@@ -123,14 +129,46 @@ const Settings = () =>{
 
 }
 
-const Sidebar = ({safePreset, getSettings, presets, setPresets, loadPreset, addItem, widgetList}) => {
+const AddCamera = ({saveSettings, activeRoom}) =>{
+    const [camName, setCamName] = useState("");
+    const [type, setType] = useState("");
+    const [url, setUrl] = useState("");
+
+    const saveCam = () => {
+        saveSettings("cam-save", {
+            "name": camName,
+            "type": type,
+            "url": saveUrl,
+            "room": activeRoom
+        })
+    }
+
+    return(
+        <div>
+        Camera Names: 
+        <input onChange = {(e) => setCamName(e.target.value)} type="text" id="camname" name="camname" placeholder="Name"/>
+        <input onChange = {(e) => setUrl(e.target.value)} type="url" id="url" name="url" placeholder = "url"/>
+
+        <input onSelect={()=>setType("rtsp")} type="radio" id="rtsp" name="rtsp" value="rtsp"/>
+        <label htmlFor="rtsp">rtsp</label>
+        <input onSelect= {()=>setType("http")}type="radio" id="http" name="http" value="http"/>
+        <label htmlFor="http">http</label>
+
+        <button onClick = {() => saveCam()}>Save</button> 
+        </div>
+    )
+}
+
+const Sidebar = ({activeRoom, chooseRoom, rooms, setRooms, safePreset, getSettings, presets, setPresets, loadPreset, addItem, widgetList, saveSettings}) => {
     const [open, setOpen] = useState(false);
+
 
     //const setOpen = () => setSidebar(!sidebar);
     if (open){
     return (
         <div className= "flex" >
             <div className={` ${open ? "w-72" : "w-0 "} bg-white h-screen p-5 pt-8 duration-300 sidebar`}>
+
                 <img
                     src="../app/favicon.ico"
                     className={`absolute cursor-pointer -right-0 top-5 w-7 border-dark-purple
@@ -138,13 +176,18 @@ const Sidebar = ({safePreset, getSettings, presets, setPresets, loadPreset, addI
                     onClick={() => setOpen(!open)}
                     />
 
-            
+            Aktiver Raum: {activeRoom}
             <ul className="pt-6">
+            <li>Choose Room
+            <ChooseRoom getSettings ={getSettings} rooms={rooms} setRooms = {setRooms} chooseRoom = {chooseRoom}/>
+            </li>
             <li>Presets 
-            <Presets getSettings={getSettings} safePreset={safePreset} presets = {presets} setPresets = {setPresets} loadPreset={loadPreset}/>
+            <Presets activeRoom ={activeRoom} getSettings={getSettings} safePreset={safePreset} presets = {presets} setPresets = {setPresets} loadPreset={loadPreset}/>
             </li>
             <li>Add Widget</li>
                 <AddWidget addItem = {addItem} widgetList = {widgetList}/>
+            <li>Add Camera</li>
+                <AddCamera saveSettings = {saveSettings} activeRoom = {activeRoom}/>
             <li>Settings</li> 
             </ul>
             </div>

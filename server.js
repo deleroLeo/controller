@@ -56,6 +56,10 @@ app.prepare().then(() => {
             //...
         });
 
+        socket.on("choose-room", (roomName) => {
+
+        });
+
         socket.on('send-morse', (room) => {
             sendMail({
                 from: '"Ein Supporter" <blr43x@gmail.com>',
@@ -89,9 +93,51 @@ app.prepare().then(() => {
             fs.writeFileSync("./settings/generalSettings.json", JSON.stringify(settings));
         });
 
-        socket.on('cam-setting-save', (settings)=>{
-            fs.writeFileSync("./settings/camSettings.json", JSON.stringify(settings, null, 2));
-        });
+        socket.on('cam-save', (settings)=>{
+            const cams = JSON.parse(fs.readFileSync("./settings/generalSettings.json"));
+            let newCam = settings
+            
+
+            if (settings.type==="rtsp"){
+                newCam.url = `http://192.168.6.2:8083/stream/${settings.room}/channel/${cams.length}/add`;
+                const username = "admin";
+                const password = "EXITmobil";
+
+                fetch(`http://192.168.6.2:8083/stream/${settings.room}/channel/${cams.length}/add`, {
+                method: "POST",
+                credentials: "include",
+                body: JSON.stringify({name: settings.name,
+                        url: settings.url,
+                        on_demand: true,
+                        audio: true,
+                        debug: false,
+                        status: 0
+                        }),
+                headers: {
+                    'Authorization': `Basic `+ Buffer.from(`${username}:${password}`).toString("base64"),
+                    "Content-type": "application/json"  
+                }
+                })
+                .then(async res => {
+                    if (!res.ok) {
+                        const errorText = await res.text();
+                        throw new Error(`Fehler: ${res.status} ${res.statusText} - ${errorText}`);
+                    }
+                    return res.json();
+                    })
+                    .then(data => {
+                    console.log('Antwort:', data);
+                    })
+                    .catch(err => {
+                    console.error('Request fehlgeschlagen:', err.message);
+                    });
+                }
+
+                cams.push(newCam);
+                fs.writeFileSync("./settings/camSettings.json", JSON.stringify(cams, null, 2));
+            }
+        );
+        
 
         socket.on('preset-save', (settings) => {
             fs.writeFileSync("./settings/presets.json", JSON.stringify(settings, null, 2));
@@ -103,7 +149,7 @@ app.prepare().then(() => {
             //console.log(settings);
             const user = getCurrentUser(socket.id);
             //console.log(user.room)
-            io.in(user.room).emit('settingLog', (settings));
+            io.in(user.room).emit('settingLog:settings-load', (settings));
             //io.to..emit('settingLog', (settings));
         });
 
@@ -118,7 +164,7 @@ app.prepare().then(() => {
             const settings = JSON.parse(fs.readFileSync("./settings/camSettings.json"));
             const user = getCurrentUser(socket.id);
             if (user) {
-                io.to(user.room).emit('settingLog', formatMessage(user.username, settings));
+                io.to(user.room).emit('settingLog:cams-load', settings);
             }
         });
         //Spieler an Spielleiter*in, oder umgekehrt
@@ -130,7 +176,7 @@ app.prepare().then(() => {
             const settings = JSON.parse(fs.readFileSync("./settings/presets.json"));
             const user = getCurrentUser(socket.id);
             if (user) {
-                io.to(user.room).emit('settingLog', settings);
+                io.to(user.room).emit('settingLog:presets-load', settings);
             }
         });
         //Spieler an Spielleiter*in, oder umgekehrt

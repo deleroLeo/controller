@@ -13,6 +13,7 @@ import Settings from "../components/settings.jsx"
 import ChatBox from "../components/chat.jsx"
 import widgetList from "../components/widgetList.jsx"
 import MailControl from "../components/mail.jsx"
+import ChooseRoom from "../components/chooseRoom.jsx"
 
 import { socket } from "../socket";
 
@@ -112,7 +113,19 @@ const GRID_CONFIG = {
   GAP: 20,
 } as const;
 
-const hints = [
+export default function App() {
+
+  const [isConnected, setIsConnected] = useState(false);
+  const [transport, setTransport] = useState("N/A");
+
+  const [genSettings, setgenSettings] = useState([]);
+  const [camSettings, setCamSettings] = useState([]);
+
+  const [rooms, setRooms] = useState([]);
+  const [activeRoom, setActiveRoom] = useState("undefined");
+  const [username, setUsername] = useState("controller");
+
+  const [hints, setHints] = useState([
     {"id": 0, 
         "text": "Test1",
         "hint": "Hint1",
@@ -124,41 +137,25 @@ const hints = [
     {"id":2,
         "text": "Test3",
         "hint": "Hint3",
-        "display": false}];
+        "display": false}]);
 
-/*const onAddItem = () => {
-    console.log("adding", "n" + this.state.newCounter);
-    setState({
-      // Add a new item. It must have a unique key!
-      items: this.state.items.concat({
-        i: "n" + this.state.newCounter,
-        x: (this.state.items.length * 2) % (this.state.cols || 12),
-        y: Infinity, // puts it at the bottom
-        w: 2,
-        h: 2
-      }),
-      // Increment the counter to ensure key is always unique.
-      newCounter: this.state.newCounter + 1
-    });
+  const [defWidgets, setDefWidgets] = useState([
+    {
+    position: {"i": "4044",
+    "w": 3,
+    "h": 3,
+    "x": 4,
+    "y": 5,
+    "moved": false,
+    "static": false},
+    title: "ChooseRoom",
+    default: true,
+    settings: []
   }
-*/
 
+  ]);
 
-
-
-export default function App() {
-
-  const [isConnected, setIsConnected] = useState(false);
-  const [transport, setTransport] = useState("N/A");
-
-  const [genSettings, setgenSettings] = useState([]);
-  const [camSettings, setCamSettings] = useState([]);
-
-  const [room, setRoom] = useState("undefined")
-  const [username, setUsername] = useState("controller")
-
-   
-
+  
 
   const [chatLog, setChatLog] = useState([{
     text:"test",
@@ -210,19 +207,28 @@ export default function App() {
   const getSettings = (type) => {
     return new Promise ((resolve) => {
       socket.emit(type);
-      socket.once("settingLog", (settings) => {
+      socket.on(`settingLog:${type}`, (settings) => {
       //console.log("settings:", settings)
       resolve(settings);
     });
     })  
   };
 
+  const chooseRoom = async (roomName) =>{
+    //const tempSettings = await getSettings('settings-load')
+    const tempRoom = rooms.find(room => room.name == roomName)
+    setHints(tempRoom.hints);
+    setDefWidgets(tempRoom.defWidgets);
+    setActiveRoom(tempRoom.name);
+  }
+
+
   const delMail = () =>{
-    socket.emit("mail-reset", (room))
+    socket.emit("mail-reset", (activeRoom))
   }
 
   const sendMail = () => {
-    socket.emit("send-morse", (room))
+    socket.emit("send-morse", (activeRoom))
   };
 
   const saveSettings = (type, settings) => {
@@ -256,70 +262,13 @@ export default function App() {
   const [newCounter, setNewCounter] = useState(1)
   const [changedDisplay, setChangedDisplay] =useState(true);
   const [activeHint, setActiveHint] = useState(0);
-  const [urls, setUrls] = useState(["http://192.168.6.2:8083/stream/R14C/channel/1/webrtc", "http://192.168.6.2:8083/stream/Z-immun/channel/0/webrtc"])
+  const [urls, setUrls] = useState(["", "http://192.168.6.2:8083/stream/Z-immun/channel/0/webrtc"])
   
-  const [items, setItems] = useState([ {
-    position:{"i": "3184",
-    "w": 2,
-    "h": 1,
-    "x": 0,
-    "y": 0,
-    
-    "moved": false,
-    "static": false},
-    title: "Hints"
-  },
-  {
-    position: {"i": "3232",
-    "w": 2,
-    "h": 3,
-    "x": 3,
-    "y": 0,
-    "moved": false,
-    "static": false},
-    title: "Progress"
-  },
-  {
-    position: {"i": "3216",
-    "w": 2,
-    "h": 2,
-    "x": 0,
-    "y": 3,
-    "moved": false,
-    "static": false},
-    title: "Spielzeit"
-  },
-  {
-    position: {"i": "3196",
-    "w": 1,
-    "h": 2,
-    "x": 3,
-    "y": 3,
-    "moved": false,
-    "static": false},
-    title: "SocketInfo"
-  },
-  {
-    position: {"i": "4040",
-    "w": 2,
-    "h": 2,
-    "x": 4,
-    "y": 3,
-    "moved": false,
-    "static": false},
-    title: "Settings"
-  },
-  {
-    position: {"i": "4041",
-    "w": 3,
-    "h": 3,
-    "x": 0,
-    "y": 5,
-    "moved": false,
-    "static": false},
-    title: "Chat"
-  },
-]);
+  const [items, setItems] = useState([]);
+
+useEffect(()=> {
+    setItems(defWidgets);
+  },[defWidgets])
 
   const addItem = (newItem) =>{
     let item = newItem
@@ -330,6 +279,11 @@ export default function App() {
     //const count = newCounter;
     setNewCounter((prevCounter)=>prevCounter+1)
   }
+  
+  const removeItem = (itemId) => {
+    let newItems = items.filter((item) => item.position.i != itemId);
+    setItems(newItems);
+  }
 
   const [layout, setLayout] = useState(items)
 
@@ -338,16 +292,7 @@ export default function App() {
     setLayout(layout);
   }, []);
 
-  const [presets, setPresets]= useState([
-    {"title": "R14C",
-     "layout": []
-    },
-    {"title": "Buch7Siegel",
-      "layout": []
-    },
-    {"title": "Labor",
-     "layout": []
-    }]);
+  const [presets, setPresets]= useState([]);
 
   const safePreset = (presName) =>{
     let tempLayout = []
@@ -360,12 +305,16 @@ export default function App() {
       })
     })
     const newEl = {"title": presName,
+                   "room": activeRoom,
                   "layout": tempLayout
+                  
                                     
     }
     saveSettings("preset-save", [...presets, newEl])
     setPresets((prevPresets)=>[...prevPresets, newEl])
 }
+
+
 
 const loadPreset = (presName) => {
   console.log("title we are searching", presName)
@@ -385,9 +334,12 @@ const loadPreset = (presName) => {
       onDragStop={handleDragAndResize}
       onResizeStop={handleDragAndResize}
       draggableHandle=".draggable-handle"
-      resizeHandles={["s", "e", "w"]}
+      resizeHandles={["s", "e", "w","n","sw","se","nw","ne"]}
       preventCollision={true}
-      compactType={"vertical"}
+      compactType={null}
+      autosize= {true}
+      margin = {[5,5]}
+
     >
       {items.map((item) => (
         <div key={item.position.i}>
@@ -409,27 +361,23 @@ const loadPreset = (presName) => {
                       item.title === "Mails" ?
                         <div><MailControl sendMail = {sendMail} delMail = {delMail}/></div>:
                       item.title === "VidSection" ?
-                        <div><VidSection urls = {urls}/></div>:
+                        <div><VidSection getSettings = {getSettings}/></div>:
+                      item.title ==="ChooseRoom" ?
+                        <div><ChooseRoom getSettings ={getSettings} setRooms ={setRooms} rooms = {rooms} chooseRoom = {chooseRoom}/></div>:
                       item.title === "SocketInfo" ? 
                         <div>
                         <p>Status: { isConnected ? "connected" : "disconnected" }</p>
                         <p>Transport: { transport }</p>
                         </div> :null}
-               header= {item.title}/>
+               header = {item.title} 
+               id = {item.position.i}
+               removeItem = {removeItem}
+               def = {item.default}/>
         </div>
       ))}
     </ResponsiveGridLayout>
 
-    <button onClick= {()=>addItem({position: {"i": "n"+newCounter,
-                                        "w": 1,
-                                        "h": 1,
-                                        "x": 4,
-                                        "y": 4*2,
-                                        "moved": false,
-                                        "static": false},
-                                        title: "4"
-  })}>New Item</button>
-    <Sidebar widgetList = {widgetList} addItem = {addItem} getSettings={getSettings} safePreset={safePreset} presets = {presets} setPresets = {setPresets} loadPreset={loadPreset}/>
+    <Sidebar saveSettings = {saveSettings} activeRoom = {activeRoom} rooms = {rooms} chooseRoom = {chooseRoom} setRooms ={setRooms} widgetList = {widgetList} addItem = {addItem} getSettings={getSettings} safePreset={safePreset} presets = {presets} setPresets = {setPresets} loadPreset={loadPreset}/>
     </div>
   );
 }

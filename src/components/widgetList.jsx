@@ -8,6 +8,7 @@ const widgetList = [ {
     "moved": false,
     "static": false},
     title: "Hints",
+    default: false,
     settings: []
 },
   {
@@ -19,6 +20,7 @@ const widgetList = [ {
     "moved": false,
     "static": false},
     title: "Progress",
+    default: false,
     settings: []
   },
   {
@@ -30,6 +32,7 @@ const widgetList = [ {
     "moved": false,
     "static": false},
     title: "Spielzeit",
+    default: false,
     settings: []
   },
   {
@@ -41,6 +44,7 @@ const widgetList = [ {
     "moved": false,
     "static": false},
     title: "SocketInfo",
+    default: false,
     settings: []
   },
   {
@@ -52,6 +56,7 @@ const widgetList = [ {
     "moved": false,
     "static": false},
     title: "Settings",
+    default: false,
     settings: []
   },
   {
@@ -63,6 +68,7 @@ const widgetList = [ {
     "moved": false,
     "static": false},
     title: "Chat",
+    default: false,
     settings: []
   },
   {
@@ -74,10 +80,11 @@ const widgetList = [ {
     "moved": false,
     "static": false},
     title: "VidSection",
+    default: false,
     settings: []
   },
   {
-    position: {"i": "4042",
+    position: {"i": "4043",
     "w": 3,
     "h": 3,
     "x": 0,
@@ -85,6 +92,7 @@ const widgetList = [ {
     "moved": false,
     "static": false},
     title: "Mails",
+    default: false,
     settings: []
   },
 
