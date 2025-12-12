@@ -4,13 +4,31 @@ import React from 'react'
 import { useCallback, useState,useEffect, useRef } from "react";
 
 
-const VidPlayer = ({url}) => {
+const VidPlayer = ({url, setSavedImage}) => {
 
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
   const webrtcSendChannel = useRef(null);
   const peerConnection = useRef(null);
   const remoteStream = useRef(null);
+  const canvasRef = useRef(null);
+
+  const CamCapture = () =>{
+    const video = remoteVideoRef.current;
+    const canvas = canvasRef.current;
+
+    if (!video || !canvas) return;
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    const dataURL = canvas.toDataURL("image/png"); // Base64
+    setSavedImage(dataURL);
+
+  }
 
   useEffect(() => {
       peerConnection.current = new RTCPeerConnection({
@@ -64,7 +82,7 @@ const VidPlayer = ({url}) => {
    }, []);
    return (
     <div>
-      
+        <button onClick = {CamCapture}>Bild Aufnehmen</button>
         <video  ref = {remoteVideoRef} autoPlay controls style={{width: '100%', height: 'auto'}}/>
       
     </div>
@@ -99,7 +117,7 @@ const VidSettings = ({getSettings, setCam}) => {
   )
 }
 
-const VidSection = ({getSettings}) => {
+const VidSection = ({getSettings, setSavedImage}) => {
   const [cam, setCam] = useState({type:null});
 
   useEffect(()=>{
@@ -112,7 +130,7 @@ const VidSection = ({getSettings}) => {
       <VidSettings setCam = {setCam} getSettings = {getSettings}/>
       <div className="flex h-full flex-col items-center justify-center">
         
-          <VidPlayer url = {cam.url}/>
+          <VidPlayer url = {cam.url} setSavedImage = {setSavedImage}/>
         
       </div>
       </div>
@@ -123,7 +141,7 @@ const VidSection = ({getSettings}) => {
       <VidSettings setCam = {setCam} getSettings = {getSettings}/>
       <div className="flex h-full flex-col items-center justify-center">
         
-          <iframe src={cam.url}></iframe>
+          <video src={cam.url} crossOrigin="anonymous"></video>
         
       </div>
       </div>

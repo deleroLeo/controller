@@ -14,6 +14,7 @@ import ChatBox from "../components/chat.jsx"
 import widgetList from "../components/widgetList.jsx"
 import MailControl from "../components/mail.jsx"
 import ChooseRoom from "../components/chooseRoom.jsx"
+import CommandSection from "../components/controls.jsx"
 
 import { socket } from "../socket";
 
@@ -125,6 +126,10 @@ export default function App() {
   const [activeRoom, setActiveRoom] = useState("undefined");
   const [username, setUsername] = useState("controller");
 
+  const [commands, setCommands]= useState([])
+
+  const [savedImage, setSavedImage] = useState("");
+
   const [hints, setHints] = useState([
     {"id": 0, 
         "text": "Test1",
@@ -220,6 +225,7 @@ export default function App() {
     setHints(tempRoom.hints);
     setDefWidgets(tempRoom.defWidgets);
     setActiveRoom(tempRoom.name);
+    setCommands(tempRoom.commands);
   }
 
 
@@ -227,8 +233,8 @@ export default function App() {
     socket.emit("mail-reset", (activeRoom))
   }
 
-  const sendMail = () => {
-    socket.emit("send-morse", (activeRoom))
+  const sendMail = (command, attachment) => {
+    socket.emit(command, ({"activeRoom": activeRoom, "attachment": attachment}))
   };
 
   const saveSettings = (type, settings) => {
@@ -251,6 +257,10 @@ export default function App() {
     console.log(msg);
   });
 
+  const socketCommand = (command, activeRoom) =>{
+    socket.emit(command, (activeRoom))
+  }
+
  
 
 
@@ -263,6 +273,7 @@ export default function App() {
   const [changedDisplay, setChangedDisplay] =useState(true);
   const [activeHint, setActiveHint] = useState(0);
   const [urls, setUrls] = useState(["", "http://192.168.6.2:8083/stream/Z-immun/channel/0/webrtc"])
+  const[resize, setResize]=useState(false);
   
   const [items, setItems] = useState([]);
 
@@ -290,6 +301,7 @@ useEffect(()=> {
   const handleDragAndResize = useCallback((layout, oldItem, newItem) => {
     
     setLayout(layout);
+    setResize((prevState)=>!prevState)
   }, []);
 
   const [presets, setPresets]= useState([]);
@@ -355,13 +367,15 @@ const loadPreset = (presName) => {
                       item.title === "div" ?
                         <div>{item.title}</div>:
                       item.title === "Chat" ?
-                        <ChatBox chatLog = {chatLog} sendMessage= {sendMessage}/>:
+                        <ChatBox chatLog = {chatLog} sendMessage= {sendMessage} resize = {resize}/>:
                       item.title === "Settings" ?
                         <div><Settings getSettings = {getSettings} saveSettings = {saveSettings}/></div>:
                       item.title === "Mails" ?
                         <div><MailControl sendMail = {sendMail} delMail = {delMail}/></div>:
                       item.title === "VidSection" ?
-                        <div><VidSection getSettings = {getSettings}/></div>:
+                        <div><VidSection getSettings = {getSettings} setSavedImage={setSavedImage}/></div>:
+                      item.title === "Commands" ?
+                        <div><CommandSection  savedImage = {savedImage} commands = {commands} activeRoom = {activeRoom} socketCommand={socketCommand} sendMail = {sendMail} delMail = {delMail}/></div>:
                       item.title ==="ChooseRoom" ?
                         <div><ChooseRoom getSettings ={getSettings} setRooms ={setRooms} rooms = {rooms} chooseRoom = {chooseRoom}/></div>:
                       item.title === "SocketInfo" ? 
