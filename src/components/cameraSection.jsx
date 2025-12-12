@@ -88,7 +88,7 @@ const VidPlayer = ({url, setSavedImage}) => {
    }, [url]);
    return (
     <div>
-        <button onClick = {CamCapture}>Bild Aufnehmen</button>
+        <button onClick = {()=>CamCapture()}>Bild Aufnehmen</button>
         <video  ref = {remoteVideoRef} autoPlay controls playsInline muted style={{width: '100%', height: 'auto'}}/>
       
     </div>
