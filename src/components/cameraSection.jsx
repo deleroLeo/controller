@@ -17,7 +17,7 @@ const VidPlayer = ({url, setSavedImage}) => {
     const video = remoteVideoRef.current;
     const canvas = canvasRef.current;
 
-    //if (!video || !canvas) return;
+    if (!video || !canvas) return;
 
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
@@ -90,7 +90,7 @@ const VidPlayer = ({url, setSavedImage}) => {
     <div>
         <button onClick = {()=>CamCapture()}>Bild Aufnehmen</button>
         <video  ref = {remoteVideoRef} autoPlay controls playsInline muted style={{width: '100%', height: 'auto'}}/>
-      
+        <canvas ref={canvasRef} style={{ display: "none" }} />
     </div>
    )
     
