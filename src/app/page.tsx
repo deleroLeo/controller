@@ -272,7 +272,6 @@ export default function App() {
   const [newCounter, setNewCounter] = useState(1)
   const [changedDisplay, setChangedDisplay] =useState(true);
   const [activeHint, setActiveHint] = useState(0);
-  const [urls, setUrls] = useState(["", "http://192.168.6.2:8083/stream/Z-immun/channel/0/webrtc"])
   const[resize, setResize]=useState(false);
   
   const [items, setItems] = useState([]);

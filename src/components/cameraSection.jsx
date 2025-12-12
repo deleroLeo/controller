@@ -17,7 +17,7 @@ const VidPlayer = ({url, setSavedImage}) => {
     const video = remoteVideoRef.current;
     const canvas = canvasRef.current;
 
-    if (!video || !canvas) return;
+    //if (!video || !canvas) return;
 
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
