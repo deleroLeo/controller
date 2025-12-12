@@ -26,6 +26,7 @@ const VidPlayer = ({url, setSavedImage}) => {
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
     const dataURL = canvas.toDataURL("image/png"); // Base64
+    console.log("DataURL: ", dataURL)
     setSavedImage(dataURL);
 
   }
