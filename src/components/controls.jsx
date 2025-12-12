@@ -74,7 +74,7 @@ const PicSend = ({activeRoom, sendMail, savedImage})=>{
         setPopUpStyle({});
     }
 
-    const [showPreview, setShowPreview] = useState(false)
+    //const [showPreview, setShowPreview] = useState(false)
     
     return(
         <div ref={itemRef}
