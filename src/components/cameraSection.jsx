@@ -43,10 +43,15 @@ const VidPlayer = ({url, setSavedImage}) => {
       peerConnection.current.ontrack = (event) => {
         remoteStream.current.addTrack(event.track)
         console.log(event.streams.length + ' track is delivered')};
+
+      peerConnection.current.oniceconnectionstatechange = () => {
+        console.log("ICE state:", peerConnection.current.iceConnectionState);
+      };
+      peerConnection.current.onicecandidateerror = console.error;
       
     
-      peerConnection.current.addTransceiver('video', { direction: 'sendrecv' })
-      peerConnection.current.addTransceiver('audio', {direction: 'sendrecv'})
+      peerConnection.current.addTransceiver('video', { direction: 'recvonly' })
+      peerConnection.current.addTransceiver('audio', {direction: 'recvonly'})
       peerConnection.current.onnegotiationneeded = async function handleNegotiationNeeded () {
         const offer = await peerConnection.current.createOffer()
 
@@ -79,11 +84,11 @@ const VidPlayer = ({url, setSavedImage}) => {
     }
     webrtcSendChannel.current.onmessage = event => console.log(event.data)
 
-   }, []);
+   }, [url]);
    return (
     <div>
         <button onClick = {CamCapture}>Bild Aufnehmen</button>
-        <video  ref = {remoteVideoRef} autoPlay controls style={{width: '100%', height: 'auto'}}/>
+        <video  ref = {remoteVideoRef} autoPlay controls playsInline muted style={{width: '100%', height: 'auto'}}/>
       
     </div>
    )

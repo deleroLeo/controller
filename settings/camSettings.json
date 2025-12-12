@@ -3,4 +3,7 @@
 "name": "R14C Cam 1"},
 {"url": "http://192.168.6.2:8083/stream/Z-immun/channel/0/webrtc",
  "type": "rtsp",
- "name": "Z-Immun Cam 1"}]
+ "name": "Z-Immun Cam 1"},
+{"url": "http://192.168.6.2:8083/stream/Z-immun/channel/1/webrtc",
+ "type": "rtsp",
+ "name": "Z-Immun Cam 2"}]
